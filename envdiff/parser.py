@@ -25,29 +25,33 @@ def parse_env_file(filepath: str) -> Dict[str, str]:
     Raises:
         FileNotFoundError: If the file does not exist.
         ValueError: If the file contains invalid syntax.
+        PermissionError: If the file cannot be read due to insufficient permissions.
     """
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"Environment file not found: {filepath}")
 
     env_vars: Dict[str, str] = {}
 
-    with open(filepath, 'r', encoding='utf-8') as f:
-        for line_number, line in enumerate(f, start=1):
-            line = line.rstrip('\n')
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            for line_number, line in enumerate(f, start=1):
+                line = line.rstrip('\n')
 
-            # Skip empty lines and comments
-            if not line.strip() or COMMENT_PATTERN.match(line):
-                continue
+                # Skip empty lines and comments
+                if not line.strip() or COMMENT_PATTERN.match(line):
+                    continue
 
-            match = ENV_LINE_PATTERN.match(line)
-            if not match:
-                raise ValueError(
-                    f"Invalid syntax at line {line_number} in '{filepath}': {line!r}"
-                )
+                match = ENV_LINE_PATTERN.match(line)
+                if not match:
+                    raise ValueError(
+                        f"Invalid syntax at line {line_number} in '{filepath}': {line!r}"
+                    )
 
-            key = match.group('key')
-            value = _strip_quotes(match.group('value').strip())
-            env_vars[key] = value
+                key = match.group('key')
+                value = _strip_quotes(match.group('value').strip())
+                env_vars[key] = value
+    except PermissionError:
+        raise PermissionError(f"Permission denied when reading file: {filepath}")
 
     return env_vars
 
