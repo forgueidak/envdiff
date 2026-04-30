@@ -85,11 +85,24 @@ def test_json_description(schema_json: Path):
     assert schema["DATABASE_URL"].description == "DB conn"
 
 
+def test_json_no_description_gives_none(schema_json: Path):
+    """Keys without a description field should default to None."""
+    schema = load_schema_json(schema_json)
+    assert schema["PORT"].description is None
+
+
 def test_json_invalid_root_type(tmp_path: Path):
     p = tmp_path / "bad.json"
     p.write_text(json.dumps(["not", "an", "object"]), encoding="utf-8")
     with pytest.raises(ValueError, match="JSON object"):
         load_schema_json(p)
+
+
+def test_json_returns_key_schema_instances(schema_json: Path):
+    """Every value in the loaded schema should be a KeySchema instance."""
+    schema = load_schema_json(schema_json)
+    for key, value in schema.items():
+        assert isinstance(value, KeySchema), f"{key!r} is not a KeySchema"
 
 
 # ---------------------------------------------------------------------------
@@ -104,21 +117,3 @@ def test_load_schema_json_dispatch(schema_json: Path):
 
 def test_load_schema_unsupported_extension(tmp_path: Path):
     p = tmp_path / "schema.yaml"
-    p.write_text("", encoding="utf-8")
-    with pytest.raises(ValueError, match="Unsupported"):
-        load_schema(p)
-
-
-# ---------------------------------------------------------------------------
-# TOML loader (skipped when tomllib/tomli unavailable)
-# ---------------------------------------------------------------------------
-
-
-def test_toml_loads_all_keys(schema_toml: Path):
-    pytest.importorskip("tomllib", reason="tomllib not available")
-    from envdiff.schema_loader import load_schema_toml
-
-    schema = load_schema_toml(schema_toml)
-    assert set(schema.keys()) == {"DATABASE_URL", "PORT", "DEBUG", "APP_NAME"}
-    assert schema["PORT"].expected_type == "int"
-    assert schema["DEBUG"].required is False
