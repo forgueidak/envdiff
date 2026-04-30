@@ -22,6 +22,20 @@ class ValidationResult:
             and not self.type_errors
         )
 
+    def summary(self) -> str:
+        """Return a human-readable summary of validation issues.
+
+        Returns an empty string when there are no issues.
+        """
+        lines: List[str] = []
+        if self.missing_required:
+            lines.append(f"Missing required keys: {', '.join(self.missing_required)}")
+        if self.unknown_keys:
+            lines.append(f"Unknown keys: {', '.join(self.unknown_keys)}")
+        for key, msg in sorted(self.type_errors.items()):
+            lines.append(f"Type error for {key!r}: {msg}")
+        return "\n".join(lines)
+
 
 @dataclass
 class KeySchema:
@@ -98,6 +112,7 @@ def validate_many(
 ) -> Dict[str, ValidationResult]:
     """Run :func:`validate_env` for each env in *envs*."""
     return {
-        name: validate_env(env, schema, allow_unknown=allow_unknown)
+        name: validate_env(env,
+        schema, allow_unknown=allow_unknown)
         for name, env in envs.items()
     }
