@@ -44,6 +44,13 @@ def test_missing_file_returns_2(tmp_env, tmp_path):
     assert main([base, missing]) == 2
 
 
+def test_both_files_missing_returns_2(tmp_path):
+    """Both arguments pointing to non-existent files should also return 2."""
+    missing_base = str(tmp_path / "no_base.env")
+    missing_target = str(tmp_path / "no_target.env")
+    assert main([missing_base, missing_target]) == 2
+
+
 def test_text_output_contains_key(tmp_env, capsys):
     base = tmp_env(".env.base", "SECRET_KEY=abc\nFOO=bar\n")
     target = tmp_env(".env.target", "FOO=bar\n")
