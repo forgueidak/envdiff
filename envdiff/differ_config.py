@@ -19,10 +19,17 @@ _DEFAULTS: Dict[str, Any] = {
 
 def _load_raw(path: Path) -> Dict[str, Any]:
     suffix = path.suffix.lower()
+
+    if not path.exists():
+        raise FileNotFoundError(f"Config file not found: {path}")
+
     text = path.read_text(encoding="utf-8")
 
     if suffix == ".json":
-        return json.loads(text)
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid JSON in config file {path}: {exc}") from exc
 
     if suffix == ".toml":
         try:
