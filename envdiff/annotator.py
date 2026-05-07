@@ -38,6 +38,19 @@ class AnnotatedDiff:
     def by_status(self, status: str) -> List[AnnotatedLine]:
         return [ln for ln in self.lines if ln.status == status]
 
+    def summary(self) -> Dict[str, int]:
+        """Return a count of lines grouped by status.
+
+        Returns:
+            A dict mapping each status string to the number of lines with that
+            status.  Only statuses that actually appear in ``self.lines`` are
+            included.
+        """
+        counts: Dict[str, int] = {}
+        for ln in self.lines:
+            counts[ln.status] = counts.get(ln.status, 0) + 1
+        return counts
+
 
 def annotate(
     base: Dict[str, str],
